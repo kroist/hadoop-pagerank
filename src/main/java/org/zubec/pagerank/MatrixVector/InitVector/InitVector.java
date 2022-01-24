@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.HashSet;
 
 
 import org.apache.hadoop.conf.Configuration;
@@ -30,30 +29,37 @@ public class InitVector {
 
         int N = 0;
         
+        /*
+        find number of nodes iterating over edges
+        */
         BufferedReader buf = new BufferedReader(new InputStreamReader(fs.open(matrixPath)));
-
         String line = buf.readLine();
-        HashSet<Integer> hashMap = new HashSet<Integer>();
         while(line != null) {
             String[] strSplit = line.split("\t");
-            int k = Integer.parseInt(strSplit[0]);
-            if (k > N)
-                N = k;
-            hashMap.add(Integer.parseInt(strSplit[0]));
+            int a = Integer.parseInt(strSplit[0]);
+            int b = Integer.parseInt(strSplit[1]);
+            if (a > N)
+                N = a;
+            if (b > N)
+                N = b;
             line = buf.readLine();
         }
-
         buf.close();
-        PrintWriter writeMatrix = new PrintWriter(new BufferedWriter(new OutputStreamWriter(fs.append(matrixPath))));
+
         PrintWriter writeVector = new PrintWriter(new BufferedWriter(new OutputStreamWriter(fs.create(vectorPath))));
 
+       
+
         for (int i = 1; i <= N; i++) {
-            writeMatrix.println(i + "\t" + "-1");
+             
+            /*
+            create pagerank vector
+            */
             writeVector.println(i + "\t" + N);
         }
-        writeMatrix.close();
         writeVector.close();
 
+        
         Job job = Job.getInstance(new Configuration(), "Vector Initialization");
         job.setJobName("Vector Initialization");
         job.setJarByClass(PageRank.class);

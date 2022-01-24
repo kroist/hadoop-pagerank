@@ -7,14 +7,18 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.zubec.pagerank.MatrixVector.VectorNormalization;
 import org.zubec.pagerank.MatrixVector.InitVector.InitVector;
 import org.zubec.pagerank.MatrixVector.MatrixVectorIO.MatrixInputMapper;
+import org.zubec.pagerank.MatrixVector.MatrixVectorIO.MatrixInputReducer;
+import org.zubec.pagerank.MatrixVector.MatrixVectorIO.PrepareMatrix;
 import org.zubec.pagerank.MatrixVector.MatrixVectorMult.MatrixVectorMult;
 
 public class PageRank {
@@ -40,8 +44,9 @@ public class PageRank {
         OutputPath = args[1];
 
 
+        PrepareMatrix.prepareMatrix(InputPath, OutputPath + "/parsed_matrix");
         boolean isCompleted;
-        isCompleted = inputMatrix(InputPath, OutputPath + "/read_matrix");
+        isCompleted = inputMatrix(OutputPath + "/parsed_matrix", OutputPath + "/read_matrix");
         if (!isCompleted) {
             System.exit(1);
         }
@@ -54,7 +59,7 @@ public class PageRank {
         DecimalFormat df = new DecimalFormat("00");
 
         int cnt_iter = 0;
-
+        
         for (int it = 1; it <= ITER_NUMBER; it++) {
             String inputVec = OutputPath + "/vector_" + df.format(cnt_iter);
             String outputVec = OutputPath + "/vector_" + df.format(cnt_iter+1);
@@ -63,6 +68,7 @@ public class PageRank {
             if (!isCompleted) {
                 System.exit(1);
             }
+            VectorNormalization.normalizeVector(outputVec);
         }
 
 
@@ -77,17 +83,9 @@ public class PageRank {
 
     }
 
-    /**
-        
-    1. Read matrix M[N*N].
-
-    2. Init vector V[N*1]  {1/N, 1/N, ...}
-
-    3. Multiply V by M for K times. 
-
-
+    /*
+    read matrix from file
     */
-
     public static boolean inputMatrix(String in, String out) throws IOException, InterruptedException, ClassNotFoundException {
         Job job = Job.getInstance(new Configuration(), "Input processing");
         job.setJobName("Input processing");
@@ -99,13 +97,17 @@ public class PageRank {
         FileInputFormat.addInputPath(job, new Path(in));
 
         job.setOutputKeyClass(IntWritable.class);
-        job.setOutputValueClass(IntWritable.class);
+        job.setOutputValueClass(Text.class);
+        job.setReducerClass(MatrixInputReducer.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         FileOutputFormat.setOutputPath(job, new Path(out));
 
         return job.waitForCompletion(true);
     }
 
+    /*
+    write final vector from SequenceFile to human-readable file.
+    */
     public static boolean outputVector(String in, String out) throws IOException, InterruptedException, ClassNotFoundException {
         Job job = Job.getInstance(new Configuration(), "Writing output to file");
         job.setJobName("Writing output to file");

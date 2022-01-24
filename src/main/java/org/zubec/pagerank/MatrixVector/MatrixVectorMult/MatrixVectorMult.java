@@ -14,9 +14,20 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.zubec.pagerank.PageRank;
 
 public class MatrixVectorMult {
+
+    /**
+     * 
+     * @param matrixString - string with path to matrix on hdfs
+     * @param vectorInString - string with path to input vector on hdfs
+     * @param vectorOutString - string with path to output vector on hdfs
+     */
     public static boolean multMatrixVector(String matrixString, String vectorInString, String vectorOutString) throws IOException, InterruptedException, ClassNotFoundException {
         Configuration conf = new Configuration();
+        /*
+        set configuration variable with path to input string
+        */
         conf.set("vectorPath", vectorInString);
+
         Job job = Job.getInstance(conf, "Matrix Vector Multiplication");
         job.setJobName("Matrix Vector Multiplication");
         job.setJarByClass(PageRank.class);
