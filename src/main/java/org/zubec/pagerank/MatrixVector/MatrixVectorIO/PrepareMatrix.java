@@ -35,12 +35,12 @@ public class PrepareMatrix {
                     N = a;
                 if (b > N)
                     N = b;
-                line = buf.readLine();
                 writeMatrix.println(a + "\t" + b);
             }
+            line = buf.readLine();
         }
         buf.close();
-        
+
         /*
         add fictive edges to assure, that all vertices will be involved in MapReduce
         */
