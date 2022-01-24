@@ -1,4 +1,4 @@
-package org.zubec.pagerank.matrixVector.InitVector;
+package org.zubec.pagerank.MatrixVector.InitVector;
 
 import java.io.IOException;
 

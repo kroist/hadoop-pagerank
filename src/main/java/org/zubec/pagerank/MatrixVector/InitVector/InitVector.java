@@ -1,4 +1,4 @@
-package org.zubec.pagerank.matrixVector.InitVector;
+package org.zubec.pagerank.MatrixVector.InitVector;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,14 +17,12 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.zubec.pagerank.PageRank;
 
 public class InitVector {
-    public static void initVector(String pathString, String matrixString) throws IOException, InterruptedException, ClassNotFoundException {
+    public static boolean initVector(String pathString, String matrixString) throws IOException, InterruptedException, ClassNotFoundException {
         
         FileSystem fs = FileSystem.get(new Configuration());
         Path matrixPath = new Path(matrixString + "/part-r-00000");
@@ -56,7 +54,8 @@ public class InitVector {
         writeMatrix.close();
         writeVector.close();
 
-        Job job = Job.getInstance(new Configuration(), "Input processing");
+        Job job = Job.getInstance(new Configuration(), "Vector Initialization");
+        job.setJobName("Vector Initialization");
         job.setJarByClass(PageRank.class);
         job.setMapOutputKeyClass(IntWritable.class);
         job.setMapOutputValueClass(DoubleWritable.class);
@@ -66,10 +65,10 @@ public class InitVector {
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(DoubleWritable.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileOutputFormat.setOutputPath(job, new Path(pathString));
 
-        job.waitForCompletion(true);
+        return job.waitForCompletion(true);
 
     }
 }
