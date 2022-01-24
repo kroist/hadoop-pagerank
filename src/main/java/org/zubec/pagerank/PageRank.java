@@ -95,6 +95,7 @@ public class PageRank {
         job.setMapperClass(MatrixInputMapper.class);
         job.setInputFormatClass(TextInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(in));
+        job.setNumReduceTasks(4);
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(Text.class);
@@ -116,6 +117,7 @@ public class PageRank {
         job.setMapOutputValueClass(DoubleWritable.class);
         job.setInputFormatClass(SequenceFileInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(in));
+        job.setNumReduceTasks(4);
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(DoubleWritable.class);

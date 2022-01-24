@@ -68,6 +68,7 @@ public class InitVector {
         job.setMapperClass(InitVectorMapper.class);
         job.setInputFormatClass(KeyValueTextInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(pathString + "f"));
+        job.setNumReduceTasks(4);
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(DoubleWritable.class);

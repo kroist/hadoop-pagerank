@@ -36,6 +36,7 @@ public class MatrixVectorMult {
         job.setMapperClass(MatrixVectorMultMapper.class);
         job.setInputFormatClass(TextInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(matrixString));
+        job.setNumReduceTasks(4);
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(DoubleWritable.class);

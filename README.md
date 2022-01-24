@@ -7,12 +7,14 @@ Download and unzip SNAP dataset (for example [web-Stanford](http://snap.stanford
 
 `
     wget http://snap.stanford.edu/data/web-Stanford.txt.gz
+    
     gunzip web-Stanford.txt.gz
 `
 
 Put dataset to HDFS
 `
     hadoop fs -mkdir -p input
+
     hdfs dfs -put web-Stanford.txt input/
 `
 
