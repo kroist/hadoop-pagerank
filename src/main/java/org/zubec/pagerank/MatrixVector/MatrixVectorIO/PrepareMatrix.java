@@ -12,7 +12,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 public class PrepareMatrix {
-    public static void prepareMatrix(String in, String out) throws IOException {
+    public static void main(String args[]) throws IOException {
+        String in = args[0];
+        String out = args[1];
         FileSystem fs = FileSystem.get(new Configuration());
         Path matrixPath = new Path(in);
 

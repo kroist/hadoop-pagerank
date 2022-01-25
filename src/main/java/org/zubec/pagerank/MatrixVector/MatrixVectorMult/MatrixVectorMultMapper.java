@@ -1,10 +1,13 @@
 package org.zubec.pagerank.MatrixVector.MatrixVectorMult;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -13,7 +16,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 public class MatrixVectorMultMapper extends Mapper<Object, Text, IntWritable, DoubleWritable> {
 
-    ArrayList<Double> vec = new ArrayList<>();
+    HashMap<Integer, Double> vec = new HashMap<>();
 
     /*
     read current vector into memory
@@ -22,20 +25,20 @@ public class MatrixVectorMultMapper extends Mapper<Object, Text, IntWritable, Do
     public void setup(Context context) throws IOException {
         
         Configuration conf = context.getConfiguration();
-        Path vectorPath = new Path(conf.get("vectorPath") + "/part-r-00000");
-        SequenceFile.Reader reader = new SequenceFile.Reader(conf, SequenceFile.Reader.file(vectorPath));
-        IntWritable key = new IntWritable();
-        DoubleWritable value = new DoubleWritable();
-        int iter = 0;
-        while(reader.next(key, value)) {
-            vec.add(value.get());
-            ++iter;
-            if (iter != key.get()) {
-                System.out.println("BAAD");
-                System.exit(1);
+        FileSystem fs = FileSystem.get(conf);
+        RemoteIterator<LocatedFileStatus> fileStatusIterator = fs.listFiles(new Path(conf.get("vectorPath")), true);
+        while (fileStatusIterator.hasNext()) {
+            LocatedFileStatus fileStatus = fileStatusIterator.next();
+            if (fileStatus.getPath().toString() == "" || fileStatus.getPath().toString().endsWith("_SUCCESS"))
+                continue;
+            SequenceFile.Reader reader = new SequenceFile.Reader(conf, SequenceFile.Reader.file(fileStatus.getPath()));
+            IntWritable key = new IntWritable();
+            DoubleWritable value = new DoubleWritable();
+            while(reader.next(key, value)) {
+                vec.put(key.get(), value.get());
             }
+            reader.close();
         }
-        reader.close();
     }
 
 
@@ -55,7 +58,7 @@ public class MatrixVectorMultMapper extends Mapper<Object, Text, IntWritable, Do
         for (int it = 1; it < splt.length; it++) {
             int val = Integer.parseInt(splt[it]);
             if (val != -1)
-                sum += vec.get(val-1) * divisor;
+                sum += vec.get(val) * divisor;
         }
         context.write(new IntWritable(i), new DoubleWritable(sum));
     }

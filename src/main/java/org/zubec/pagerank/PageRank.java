@@ -18,7 +18,6 @@ import org.zubec.pagerank.MatrixVector.VectorNormalization;
 import org.zubec.pagerank.MatrixVector.InitVector.InitVector;
 import org.zubec.pagerank.MatrixVector.MatrixVectorIO.MatrixInputMapper;
 import org.zubec.pagerank.MatrixVector.MatrixVectorIO.MatrixInputReducer;
-import org.zubec.pagerank.MatrixVector.MatrixVectorIO.PrepareMatrix;
 import org.zubec.pagerank.MatrixVector.MatrixVectorMult.MatrixVectorMult;
 
 public class PageRank {
@@ -44,9 +43,9 @@ public class PageRank {
         OutputPath = args[1];
 
 
-        PrepareMatrix.prepareMatrix(InputPath, OutputPath + "/parsed_matrix");
+        //PrepareMatrix.prepareMatrix(InputPath, OutputPath + "/parsed_matrix");
         boolean isCompleted;
-        isCompleted = inputMatrix(OutputPath + "/parsed_matrix", OutputPath + "/read_matrix");
+        isCompleted = inputMatrix(InputPath, OutputPath + "/read_matrix");
         if (!isCompleted) {
             System.exit(1);
         }
@@ -59,6 +58,8 @@ public class PageRank {
         DecimalFormat df = new DecimalFormat("00");
 
         int cnt_iter = 0;
+        VectorNormalization.normalizeVector(OutputPath + "/vector_00");
+
         
         for (int it = 1; it <= ITER_NUMBER; it++) {
             String inputVec = OutputPath + "/vector_" + df.format(cnt_iter);
@@ -117,7 +118,7 @@ public class PageRank {
         job.setMapOutputValueClass(DoubleWritable.class);
         job.setInputFormatClass(SequenceFileInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(in));
-        job.setNumReduceTasks(4);
+        job.setNumReduceTasks(1);
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(DoubleWritable.class);

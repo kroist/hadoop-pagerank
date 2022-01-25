@@ -9,8 +9,11 @@ import java.io.PrintWriter;
 
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Job;
@@ -23,28 +26,39 @@ import org.zubec.pagerank.PageRank;
 public class InitVector {
     public static boolean initVector(String pathString, String matrixString) throws IOException, InterruptedException, ClassNotFoundException {
         
-        FileSystem fs = FileSystem.get(new Configuration());
-        Path matrixPath = new Path(matrixString + "/part-r-00000");
+
+        Configuration conf = new Configuration();
+
+        FileSystem fs = FileSystem.get(conf);
         Path vectorPath = new Path(pathString + "f" + "/part-r-00000");
 
+        RemoteIterator<LocatedFileStatus> fileStatusIterator = fs.listFiles(new Path(matrixString), true);
         int N = 0;
+
+        while (fileStatusIterator.hasNext()) {
+            FileStatus fileStatus = fileStatusIterator.next();
+            if (fileStatus.getPath().toString() == "" || fileStatus.getPath().toString().endsWith("_SUCCESS"))
+                continue;
+            BufferedReader buf = new BufferedReader(new InputStreamReader(fs.open(fileStatus.getPath())));
+            String line = buf.readLine();
+            while(line != null) {
+                String[] strSplit = line.split("\t");
+                int a = Integer.parseInt(strSplit[0]);
+                int b = Integer.parseInt(strSplit[1]);
+                if (a > N)
+                    N = a;
+                if (b > N)
+                    N = b;
+                line = buf.readLine();
+            }
+            buf.close();
+        }
+
         
         /*
         find number of nodes iterating over edges
         */
-        BufferedReader buf = new BufferedReader(new InputStreamReader(fs.open(matrixPath)));
-        String line = buf.readLine();
-        while(line != null) {
-            String[] strSplit = line.split("\t");
-            int a = Integer.parseInt(strSplit[0]);
-            int b = Integer.parseInt(strSplit[1]);
-            if (a > N)
-                N = a;
-            if (b > N)
-                N = b;
-            line = buf.readLine();
-        }
-        buf.close();
+        
 
         PrintWriter writeVector = new PrintWriter(new BufferedWriter(new OutputStreamWriter(fs.create(vectorPath))));
 
