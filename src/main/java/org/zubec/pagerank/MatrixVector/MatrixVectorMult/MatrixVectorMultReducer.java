@@ -14,9 +14,15 @@ public class MatrixVectorMultReducer extends Reducer<IntWritable, DoubleWritable
     @Override
     public void reduce(IntWritable key, Iterable<DoubleWritable> values, Context context) throws IOException, InterruptedException {
         Double sum = 0.0;
+        int cnt = 0;
         for (DoubleWritable val : values) {
-            sum += val.get();
+            if (val.get() >= 0)  {
+                sum += val.get();
+                ++cnt;
+            }
         }
-        context.write(key, new DoubleWritable(sum));
+        if (cnt == 0)
+            context.write(key, new DoubleWritable(0));
+        context.write(key, new DoubleWritable(sum/((double)cnt)));
     }
 }

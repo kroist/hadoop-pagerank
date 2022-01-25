@@ -41,25 +41,23 @@ public class MatrixVectorMultMapper extends Mapper<Object, Text, IntWritable, Do
         }
     }
 
-
+    
     /*
-    for each tuple (i, j1, j2, j3, ...) map it to (i, V[j1]*1/(J_CNT), ...)
+    0 1 0
+    1 0 1
+    0 1 0
+
+    (i, j, 1/CNT_i)
+
+    for each tuple (i, j) map it to (i, V[j])
     */
     @Override
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         String[] splt = value.toString().split("\t");
         int i = Integer.parseInt(splt[0]);
-        int jCnt = splt.length-2;
-        if (jCnt == 0) {
-            context.write(new IntWritable(i), new DoubleWritable(0));
-        }
-        double sum = 0;
-        double divisor = 1.0 / (double)jCnt;
-        for (int it = 1; it < splt.length; it++) {
-            int val = Integer.parseInt(splt[it]);
-            if (val != -1)
-                sum += vec.get(val) * divisor;
-        }
-        context.write(new IntWritable(i), new DoubleWritable(sum));
+        int j = Integer.parseInt(splt[1]);
+        if (j == -1)
+            context.write(new IntWritable(i), new DoubleWritable(-1));
+        context.write(new IntWritable(i), new DoubleWritable(vec.get(j)));
     }
 }

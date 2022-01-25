@@ -17,7 +17,6 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.zubec.pagerank.MatrixVector.VectorNormalization;
 import org.zubec.pagerank.MatrixVector.InitVector.InitVector;
 import org.zubec.pagerank.MatrixVector.MatrixVectorIO.MatrixInputMapper;
-import org.zubec.pagerank.MatrixVector.MatrixVectorIO.MatrixInputReducer;
 import org.zubec.pagerank.MatrixVector.MatrixVectorMult.MatrixVectorMult;
 
 public class PageRank {
@@ -100,7 +99,6 @@ public class PageRank {
 
         job.setOutputKeyClass(IntWritable.class);
         job.setOutputValueClass(Text.class);
-        job.setReducerClass(MatrixInputReducer.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         FileOutputFormat.setOutputPath(job, new Path(out));
 
